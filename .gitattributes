@@ -1,0 +1,6 @@
+# Fine riga uniforme su tutti i sistemi; i file .bat restano nel formato di Windows.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.webp binary
+*.png binary
+*.wasm binary

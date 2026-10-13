@@ -1,0 +1,9 @@
+/node_modules
+/dist
+# Database locale.
+/data
+.env
+# Video promozionali e fotogrammi intermedi: si rigenerano con scripts/promo.
+/promo
+# Impostazioni locali dell'editor.
+/.claude

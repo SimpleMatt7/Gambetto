@@ -1,0 +1,26 @@
+services:
+  gambetto:
+    # In locale si costruisce dai sorgenti; sulla VPS, con GAMBETTO_IMAGE nel file .env, si scarica l'immagine
+    # già pronta pubblicata da GitHub (vedi DEPLOY.md).
+    image: ${GAMBETTO_IMAGE:-gambetto}
+    build: .
+    restart: unless-stopped
+    # In ascolto solo sulla macchina stessa: dall'esterno si passa dal proxy di aaPanel, che aggiunge HTTPS.
+    ports:
+      - "127.0.0.1:${GAMBETTO_PORT:-8787}:8787"
+    volumes:
+      - gambetto-data:/data
+    environment:
+      TRUST_PROXY: "1"
+      # 1 sul sito pubblico: il cookie di sessione viaggia solo in HTTPS.
+      COOKIE_SECURE: "${COOKIE_SECURE:-0}"
+      # Attesa prima di poter reclamare la vittoria se l'avversario sparisce (millisecondi).
+      CLAIM_MS: "${CLAIM_MS:-120000}"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  # Qui vive il database (account, progressi, partite). Sopravvive ad aggiornamenti e riavvii.
+  gambetto-data:

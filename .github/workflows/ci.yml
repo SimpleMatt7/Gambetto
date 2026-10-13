@@ -1,0 +1,76 @@
+# A ogni modifica su "main": controlla il codice, costruisce il contenitore e, se abilitato, aggiorna la VPS.
+name: Gambetto
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  verifica:
+    name: Controlli e test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Controllo dei tipi (app e server)
+        run: npx tsc --noEmit && npx tsc --noEmit -p tsconfig.server.json
+      - name: Lezioni, aperture e trappole sono giocabili
+        run: npm run validate
+      - name: Test del server (account, permessi, arbitro, orologio)
+        run: npm run test:server
+      - name: Compilazione dell'app
+        run: npm run build
+
+  immagine:
+    name: Contenitore
+    needs: verifica
+    if: github.event_name == 'push'
+    # La VPS è ARM64: l'immagine si costruisce su una macchina della stessa architettura.
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Nome dell'immagine (il registro vuole il nome utente in minuscolo)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/gambetto" >> "$GITHUB_ENV"
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+  pubblica:
+    name: Aggiornamento della VPS
+    needs: immagine
+    # Parte solo dopo aver impostato la variabile DEPLOY_ENABLED=true e i segreti indicati in DEPLOY.md.
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            cd "${{ vars.DEPLOY_PATH || '/opt/gambetto' }}"
+            docker compose pull
+            docker compose up -d --no-build
+            docker image prune -f

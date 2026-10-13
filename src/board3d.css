@@ -1,0 +1,894 @@
+/* Scacchiera 3D: generato da scripts/board3d.py, a partire dalle misure usate da Lichess. Non modificare a mano.
+   La scacchiera è un'immagine in prospettiva; i pezzi sono figure più alte delle case, che si sovrappongono
+   a quelle dietro. La griglia resta regolare, quindi mosse, frecce ed evidenziazioni funzionano come in 2D. */
+
+.board-frame.is3d {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* La griglia 3D è più bassa che larga; in alto serve spazio per i pezzi dell'ultima traversa, che sporgono. */
+.board-frame.is3d .board-square {
+  aspect-ratio: 512 / 464.5;
+  margin-top: 8.5%;
+  overflow: visible;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.is3d cg-board {
+  background: none;
+}
+
+.is3d cg-board::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -0.7307%;
+  width: 100%;
+  height: 103.2%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 26px 30px rgb(0 0 0 / calc(0.55 * var(--shadow-k))));
+  pointer-events: none;
+}
+
+.is3d .board-host piece {
+  width: 16.741%;
+  height: 23.563%;
+  left: -1.85%;
+  top: -9.1%;
+  filter: none;
+}
+
+.is3d cg-board piece.dragging {
+  filter: drop-shadow(0 12px 10px rgb(0 0 0 / 0.35));
+}
+
+.is3d .board-host coords coord {
+  color: rgb(255 255 255 / 0.85) !important;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.8);
+}
+
+.is3d cg-board square.last-move {
+  background-color: rgba(246, 205, 96, 0.5);
+}
+
+/* Miniature per le scelte nelle impostazioni. */
+.swatch i.thumb3d {
+  background-color: rgb(var(--tint) / 0.08);
+  background-size: 92% auto;
+  background-repeat: no-repeat;
+  background-position: center 40%;
+}
+
+.swatch i.thumb-board3d {
+  background-size: cover;
+  background-position: center;
+}
+
+.is3d.b3d-legno-chiaro cg-board::before {
+  background-image: url('./assets/3d/board/Light-Wood.webp');
+}
+
+.thumb-board3d.b3d-legno-chiaro {
+  background-image: url('./assets/3d/board/Light-Wood.thumbnail.webp');
+}
+
+.is3d.b3d-palissandro cg-board::before {
+  background-image: url('./assets/3d/board/Rosewood.webp');
+}
+
+.thumb-board3d.b3d-palissandro {
+  background-image: url('./assets/3d/board/Rosewood.thumbnail.webp');
+}
+
+.is3d.b3d-legno-scuro cg-board::before {
+  background-image: url('./assets/3d/board/Woodi.webp');
+}
+
+.thumb-board3d.b3d-legno-scuro {
+  background-image: url('./assets/3d/board/Woodi.thumbnail.webp');
+}
+
+.is3d.b3d-legno-vetro cg-board::before {
+  background-image: url('./assets/3d/board/Wood-Glass.webp');
+}
+
+.thumb-board3d.b3d-legno-vetro {
+  background-image: url('./assets/3d/board/Wood-Glass.thumbnail.webp');
+}
+
+.is3d.b3d-giada cg-board::before {
+  background-image: url('./assets/3d/board/Jade.webp');
+}
+
+.thumb-board3d.b3d-giada {
+  background-image: url('./assets/3d/board/Jade.thumbnail.webp');
+}
+
+.is3d.b3d-marmo cg-board::before {
+  background-image: url('./assets/3d/board/Marble.webp');
+}
+
+.thumb-board3d.b3d-marmo {
+  background-image: url('./assets/3d/board/Marble.thumbnail.webp');
+}
+
+.is3d.b3d-vetro-verde cg-board::before {
+  background-image: url('./assets/3d/board/Green-Glass.webp');
+}
+
+.thumb-board3d.b3d-vetro-verde {
+  background-image: url('./assets/3d/board/Green-Glass.thumbnail.webp');
+}
+
+.is3d.b3d-vetro cg-board::before {
+  background-image: url('./assets/3d/board/Glass.webp');
+}
+
+.thumb-board3d.b3d-vetro {
+  background-image: url('./assets/3d/board/Glass.thumbnail.webp');
+}
+
+.is3d.b3d-blu cg-board::before {
+  background-image: url('./assets/3d/board/Classic-Blue.webp');
+}
+
+.thumb-board3d.b3d-blu {
+  background-image: url('./assets/3d/board/Classic-Blue.thumbnail.webp');
+}
+
+.is3d.b3d-blu-lucido cg-board::before {
+  background-image: url('./assets/3d/board/China-Blue.webp');
+}
+
+.thumb-board3d.b3d-blu-lucido {
+  background-image: url('./assets/3d/board/China-Blue.thumbnail.webp');
+}
+
+.is3d.b3d-verde-lucido cg-board::before {
+  background-image: url('./assets/3d/board/China-Green.webp');
+}
+
+.thumb-board3d.b3d-verde-lucido {
+  background-image: url('./assets/3d/board/China-Green.thumbnail.webp');
+}
+
+.is3d.b3d-grigio-lucido cg-board::before {
+  background-image: url('./assets/3d/board/China-Grey.webp');
+}
+
+.thumb-board3d.b3d-grigio-lucido {
+  background-image: url('./assets/3d/board/China-Grey.thumbnail.webp');
+}
+
+.is3d.b3d-scarlatto cg-board::before {
+  background-image: url('./assets/3d/board/China-Scarlet.webp');
+}
+
+.thumb-board3d.b3d-scarlatto {
+  background-image: url('./assets/3d/board/China-Scarlet.thumbnail.webp');
+}
+
+.is3d.b3d-giallo cg-board::before {
+  background-image: url('./assets/3d/board/China-Yellow.webp');
+}
+
+.thumb-board3d.b3d-giallo {
+  background-image: url('./assets/3d/board/China-Yellow.thumbnail.webp');
+}
+
+.is3d.b3d-viola cg-board::before {
+  background-image: url('./assets/3d/board/Purple-Black.webp');
+}
+
+.thumb-board3d.b3d-viola {
+  background-image: url('./assets/3d/board/Purple-Black.thumbnail.webp');
+}
+
+.is3d.b3d-cera cg-board::before {
+  background-image: url('./assets/3d/board/Wax.webp');
+}
+
+.thumb-board3d.b3d-cera {
+  background-image: url('./assets/3d/board/Wax.thumbnail.webp');
+}
+
+.is3d.b3d-oro-argento cg-board::before {
+  background-image: url('./assets/3d/board/Gold-Silver.webp');
+}
+
+.thumb-board3d.b3d-oro-argento {
+  background-image: url('./assets/3d/board/Gold-Silver.thumbnail.webp');
+}
+
+.is3d.b3d-alluminio cg-board::before {
+  background-image: url('./assets/3d/board/Brushed-Aluminium.webp');
+}
+
+.thumb-board3d.b3d-alluminio {
+  background-image: url('./assets/3d/board/Brushed-Aluminium.thumbnail.webp');
+}
+
+.is3d.b3d-bianco-nero cg-board::before {
+  background-image: url('./assets/3d/board/Black-White-Aluminium.webp');
+}
+
+.thumb-board3d.b3d-bianco-nero {
+  background-image: url('./assets/3d/board/Black-White-Aluminium.thumbnail.webp');
+}
+
+.is3d.b3d-verniciato cg-board::before {
+  background-image: url('./assets/3d/board/Power-Coated.webp');
+}
+
+.thumb-board3d.b3d-verniciato {
+  background-image: url('./assets/3d/board/Power-Coated.thumbnail.webp');
+}
+
+.is3d.set-classico .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/Staunton/White-Pawn.webp');
+}
+
+.is3d.set-classico .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/Staunton/White-Bishop.webp');
+}
+
+.is3d.set-classico .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/Staunton/White-Knight.webp');
+}
+
+.is3d.set-classico .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/Staunton/White-Rook.webp');
+}
+
+.is3d.set-classico .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/Staunton/White-Queen.webp');
+}
+
+.is3d.set-classico .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/Staunton/White-King.webp');
+}
+
+.is3d.set-classico .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/Staunton/Black-Pawn.webp');
+}
+
+.is3d.set-classico .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/Staunton/Black-Bishop.webp');
+}
+
+.is3d.set-classico .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/Staunton/Black-Knight.webp');
+}
+
+.is3d.set-classico .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/Staunton/Black-Rook.webp');
+}
+
+.is3d.set-classico .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/Staunton/Black-Queen.webp');
+}
+
+.is3d.set-classico .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/Staunton/Black-King.webp');
+}
+
+.thumb3d.set-classico {
+  background-image: url('./assets/3d/piece/Staunton/White-Knight.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/Wood/White-Pawn.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/Wood/White-Bishop.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/Wood/White-Knight.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/Wood/White-Rook.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/Wood/White-Queen.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/Wood/White-King.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/Wood/Black-Pawn.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/Wood/Black-Bishop.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/Wood/Black-Knight.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/Wood/Black-Rook.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/Wood/Black-Queen.webp');
+}
+
+.is3d.set-legno-chiaro .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/Wood/Black-King.webp');
+}
+
+.is3d.set-legno-chiaro .board-host.orientation-black piece.bishop.white {
+  background-image: url('./assets/3d/piece/Wood/White-Bishop-Flipped.webp');
+}
+
+.is3d.set-legno-chiaro .board-host.orientation-black piece.knight.white {
+  background-image: url('./assets/3d/piece/Wood/White-Knight-Flipped.webp');
+}
+
+.is3d.set-legno-chiaro .board-host.orientation-white piece.bishop.black {
+  background-image: url('./assets/3d/piece/Wood/Black-Bishop-Flipped.webp');
+}
+
+.is3d.set-legno-chiaro .board-host.orientation-white piece.knight.black {
+  background-image: url('./assets/3d/piece/Wood/Black-Knight-Flipped.webp');
+}
+
+.thumb3d.set-legno-chiaro {
+  background-image: url('./assets/3d/piece/Wood/White-Knight.webp');
+}
+
+.is3d.set-legno .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/ModernWood/White-Pawn.webp');
+}
+
+.is3d.set-legno .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/ModernWood/White-Bishop.webp');
+}
+
+.is3d.set-legno .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/ModernWood/White-Knight.webp');
+}
+
+.is3d.set-legno .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/ModernWood/White-Rook.webp');
+}
+
+.is3d.set-legno .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/ModernWood/White-Queen.webp');
+}
+
+.is3d.set-legno .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/ModernWood/White-King.webp');
+}
+
+.is3d.set-legno .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/ModernWood/Black-Pawn.webp');
+}
+
+.is3d.set-legno .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/ModernWood/Black-Bishop.webp');
+}
+
+.is3d.set-legno .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/ModernWood/Black-Knight.webp');
+}
+
+.is3d.set-legno .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/ModernWood/Black-Rook.webp');
+}
+
+.is3d.set-legno .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/ModernWood/Black-Queen.webp');
+}
+
+.is3d.set-legno .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/ModernWood/Black-King.webp');
+}
+
+.is3d.set-legno .board-host.orientation-black piece.bishop.white {
+  background-image: url('./assets/3d/piece/ModernWood/White-Bishop-Flipped.webp');
+}
+
+.is3d.set-legno .board-host.orientation-black piece.knight.white {
+  background-image: url('./assets/3d/piece/ModernWood/White-Knight-Flipped.webp');
+}
+
+.is3d.set-legno .board-host.orientation-white piece.bishop.black {
+  background-image: url('./assets/3d/piece/ModernWood/Black-Bishop-Flipped.webp');
+}
+
+.is3d.set-legno .board-host.orientation-white piece.knight.black {
+  background-image: url('./assets/3d/piece/ModernWood/Black-Knight-Flipped.webp');
+}
+
+.thumb3d.set-legno {
+  background-image: url('./assets/3d/piece/ModernWood/White-Knight.webp');
+}
+
+.is3d.set-metallo .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/Metal/White-Pawn.webp');
+}
+
+.is3d.set-metallo .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/Metal/White-Bishop.webp');
+}
+
+.is3d.set-metallo .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/Metal/White-Knight.webp');
+}
+
+.is3d.set-metallo .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/Metal/White-Rook.webp');
+}
+
+.is3d.set-metallo .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/Metal/White-Queen.webp');
+}
+
+.is3d.set-metallo .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/Metal/White-King.webp');
+}
+
+.is3d.set-metallo .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/Metal/Black-Pawn.webp');
+}
+
+.is3d.set-metallo .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/Metal/Black-Bishop.webp');
+}
+
+.is3d.set-metallo .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/Metal/Black-Knight.webp');
+}
+
+.is3d.set-metallo .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/Metal/Black-Rook.webp');
+}
+
+.is3d.set-metallo .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/Metal/Black-Queen.webp');
+}
+
+.is3d.set-metallo .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/Metal/Black-King.webp');
+}
+
+.is3d.set-metallo .board-host.orientation-black piece.bishop.white {
+  background-image: url('./assets/3d/piece/Metal/White-Bishop-Flipped.webp');
+}
+
+.is3d.set-metallo .board-host.orientation-black piece.knight.white {
+  background-image: url('./assets/3d/piece/Metal/White-Knight-Flipped.webp');
+}
+
+.is3d.set-metallo .board-host.orientation-white piece.bishop.black {
+  background-image: url('./assets/3d/piece/Metal/Black-Bishop-Flipped.webp');
+}
+
+.is3d.set-metallo .board-host.orientation-white piece.knight.black {
+  background-image: url('./assets/3d/piece/Metal/Black-Knight-Flipped.webp');
+}
+
+.thumb3d.set-metallo {
+  background-image: url('./assets/3d/piece/Metal/White-Knight.webp');
+}
+
+.is3d.set-vetro .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/Glass/White-Pawn.webp');
+}
+
+.is3d.set-vetro .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/Glass/White-Bishop.webp');
+}
+
+.is3d.set-vetro .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/Glass/White-Knight.webp');
+}
+
+.is3d.set-vetro .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/Glass/White-Rook.webp');
+}
+
+.is3d.set-vetro .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/Glass/White-Queen.webp');
+}
+
+.is3d.set-vetro .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/Glass/White-King.webp');
+}
+
+.is3d.set-vetro .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/Glass/Black-Pawn.webp');
+}
+
+.is3d.set-vetro .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/Glass/Black-Bishop.webp');
+}
+
+.is3d.set-vetro .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/Glass/Black-Knight.webp');
+}
+
+.is3d.set-vetro .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/Glass/Black-Rook.webp');
+}
+
+.is3d.set-vetro .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/Glass/Black-Queen.webp');
+}
+
+.is3d.set-vetro .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/Glass/Black-King.webp');
+}
+
+.is3d.set-vetro .board-host.orientation-black piece.bishop.white {
+  background-image: url('./assets/3d/piece/Glass/White-Bishop-Flipped.webp');
+}
+
+.is3d.set-vetro .board-host.orientation-black piece.knight.white {
+  background-image: url('./assets/3d/piece/Glass/White-Knight-Flipped.webp');
+}
+
+.is3d.set-vetro .board-host.orientation-white piece.bishop.black {
+  background-image: url('./assets/3d/piece/Glass/Black-Bishop-Flipped.webp');
+}
+
+.is3d.set-vetro .board-host.orientation-white piece.knight.black {
+  background-image: url('./assets/3d/piece/Glass/Black-Knight-Flipped.webp');
+}
+
+.thumb3d.set-vetro {
+  background-image: url('./assets/3d/piece/Glass/White-Knight.webp');
+}
+
+.is3d.set-giada .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/ModernJade/White-Pawn.webp');
+}
+
+.is3d.set-giada .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/ModernJade/White-Bishop.webp');
+}
+
+.is3d.set-giada .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/ModernJade/White-Knight.webp');
+}
+
+.is3d.set-giada .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/ModernJade/White-Rook.webp');
+}
+
+.is3d.set-giada .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/ModernJade/White-Queen.webp');
+}
+
+.is3d.set-giada .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/ModernJade/White-King.webp');
+}
+
+.is3d.set-giada .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/ModernJade/Black-Pawn.webp');
+}
+
+.is3d.set-giada .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/ModernJade/Black-Bishop.webp');
+}
+
+.is3d.set-giada .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/ModernJade/Black-Knight.webp');
+}
+
+.is3d.set-giada .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/ModernJade/Black-Rook.webp');
+}
+
+.is3d.set-giada .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/ModernJade/Black-Queen.webp');
+}
+
+.is3d.set-giada .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/ModernJade/Black-King.webp');
+}
+
+.is3d.set-giada .board-host.orientation-black piece.bishop.white {
+  background-image: url('./assets/3d/piece/ModernJade/White-Bishop-Flipped.webp');
+}
+
+.is3d.set-giada .board-host.orientation-black piece.knight.white {
+  background-image: url('./assets/3d/piece/ModernJade/White-Knight-Flipped.webp');
+}
+
+.is3d.set-giada .board-host.orientation-white piece.bishop.black {
+  background-image: url('./assets/3d/piece/ModernJade/Black-Bishop-Flipped.webp');
+}
+
+.is3d.set-giada .board-host.orientation-white piece.knight.black {
+  background-image: url('./assets/3d/piece/ModernJade/Black-Knight-Flipped.webp');
+}
+
+.thumb3d.set-giada {
+  background-image: url('./assets/3d/piece/ModernJade/White-Knight.webp');
+}
+
+.is3d.set-essenziale .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/Basic/White-Pawn.webp');
+}
+
+.is3d.set-essenziale .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/Basic/White-Bishop.webp');
+}
+
+.is3d.set-essenziale .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/Basic/White-Knight.webp');
+}
+
+.is3d.set-essenziale .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/Basic/White-Rook.webp');
+}
+
+.is3d.set-essenziale .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/Basic/White-Queen.webp');
+}
+
+.is3d.set-essenziale .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/Basic/White-King.webp');
+}
+
+.is3d.set-essenziale .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/Basic/Black-Pawn.webp');
+}
+
+.is3d.set-essenziale .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/Basic/Black-Bishop.webp');
+}
+
+.is3d.set-essenziale .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/Basic/Black-Knight.webp');
+}
+
+.is3d.set-essenziale .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/Basic/Black-Rook.webp');
+}
+
+.is3d.set-essenziale .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/Basic/Black-Queen.webp');
+}
+
+.is3d.set-essenziale .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/Basic/Black-King.webp');
+}
+
+.is3d.set-essenziale .board-host.orientation-black piece.bishop.white {
+  background-image: url('./assets/3d/piece/Basic/White-Bishop-Flipped.webp');
+}
+
+.is3d.set-essenziale .board-host.orientation-black piece.knight.white {
+  background-image: url('./assets/3d/piece/Basic/White-Knight-Flipped.webp');
+}
+
+.is3d.set-essenziale .board-host.orientation-white piece.bishop.black {
+  background-image: url('./assets/3d/piece/Basic/Black-Bishop-Flipped.webp');
+}
+
+.is3d.set-essenziale .board-host.orientation-white piece.knight.black {
+  background-image: url('./assets/3d/piece/Basic/Black-Knight-Flipped.webp');
+}
+
+.thumb3d.set-essenziale {
+  background-image: url('./assets/3d/piece/Basic/White-Knight.webp');
+}
+
+.is3d.set-rifinito .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/Trimmed/White-Pawn.webp');
+}
+
+.is3d.set-rifinito .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/Trimmed/White-Bishop.webp');
+}
+
+.is3d.set-rifinito .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/Trimmed/White-Knight.webp');
+}
+
+.is3d.set-rifinito .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/Trimmed/White-Rook.webp');
+}
+
+.is3d.set-rifinito .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/Trimmed/White-Queen.webp');
+}
+
+.is3d.set-rifinito .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/Trimmed/White-King.webp');
+}
+
+.is3d.set-rifinito .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/Trimmed/Black-Pawn.webp');
+}
+
+.is3d.set-rifinito .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/Trimmed/Black-Bishop.webp');
+}
+
+.is3d.set-rifinito .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/Trimmed/Black-Knight.webp');
+}
+
+.is3d.set-rifinito .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/Trimmed/Black-Rook.webp');
+}
+
+.is3d.set-rifinito .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/Trimmed/Black-Queen.webp');
+}
+
+.is3d.set-rifinito .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/Trimmed/Black-King.webp');
+}
+
+.is3d.set-rifinito .board-host.orientation-black piece.bishop.white {
+  background-image: url('./assets/3d/piece/Trimmed/White-Bishop-Flipped.webp');
+}
+
+.is3d.set-rifinito .board-host.orientation-black piece.knight.white {
+  background-image: url('./assets/3d/piece/Trimmed/White-Knight-Flipped.webp');
+}
+
+.is3d.set-rifinito .board-host.orientation-white piece.bishop.black {
+  background-image: url('./assets/3d/piece/Trimmed/Black-Bishop-Flipped.webp');
+}
+
+.is3d.set-rifinito .board-host.orientation-white piece.knight.black {
+  background-image: url('./assets/3d/piece/Trimmed/Black-Knight-Flipped.webp');
+}
+
+.thumb3d.set-rifinito {
+  background-image: url('./assets/3d/piece/Trimmed/White-Knight.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/RedVBlue/White-Pawn.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/RedVBlue/White-Bishop.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/RedVBlue/White-Knight.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/RedVBlue/White-Rook.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/RedVBlue/White-Queen.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/RedVBlue/White-King.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/RedVBlue/Black-Pawn.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/RedVBlue/Black-Bishop.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/RedVBlue/Black-Knight.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/RedVBlue/Black-Rook.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/RedVBlue/Black-Queen.webp');
+}
+
+.is3d.set-rossoblu .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/RedVBlue/Black-King.webp');
+}
+
+.is3d.set-rossoblu .board-host.orientation-black piece.bishop.white {
+  background-image: url('./assets/3d/piece/RedVBlue/White-Bishop-Flipped.webp');
+}
+
+.is3d.set-rossoblu .board-host.orientation-black piece.knight.white {
+  background-image: url('./assets/3d/piece/RedVBlue/White-Knight-Flipped.webp');
+}
+
+.is3d.set-rossoblu .board-host.orientation-white piece.bishop.black {
+  background-image: url('./assets/3d/piece/RedVBlue/Black-Bishop-Flipped.webp');
+}
+
+.is3d.set-rossoblu .board-host.orientation-white piece.knight.black {
+  background-image: url('./assets/3d/piece/RedVBlue/Black-Knight-Flipped.webp');
+}
+
+.thumb3d.set-rossoblu {
+  background-image: url('./assets/3d/piece/RedVBlue/White-Knight.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.pawn.white {
+  background-image: url('./assets/3d/piece/Experimental/White-Pawn.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.bishop.white {
+  background-image: url('./assets/3d/piece/Experimental/White-Bishop.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.knight.white {
+  background-image: url('./assets/3d/piece/Experimental/White-Knight.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.rook.white {
+  background-image: url('./assets/3d/piece/Experimental/White-Rook.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.queen.white {
+  background-image: url('./assets/3d/piece/Experimental/White-Queen.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.king.white {
+  background-image: url('./assets/3d/piece/Experimental/White-King.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.pawn.black {
+  background-image: url('./assets/3d/piece/Experimental/Black-Pawn.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.bishop.black {
+  background-image: url('./assets/3d/piece/Experimental/Black-Bishop.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.knight.black {
+  background-image: url('./assets/3d/piece/Experimental/Black-Knight.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.rook.black {
+  background-image: url('./assets/3d/piece/Experimental/Black-Rook.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.queen.black {
+  background-image: url('./assets/3d/piece/Experimental/Black-Queen.webp');
+}
+
+.is3d.set-sperimentale .board-host piece.king.black {
+  background-image: url('./assets/3d/piece/Experimental/Black-King.webp');
+}
+
+.is3d.set-sperimentale .board-host.orientation-black piece.bishop.white {
+  background-image: url('./assets/3d/piece/Experimental/White-Bishop-Flipped.webp');
+}
+
+.is3d.set-sperimentale .board-host.orientation-black piece.knight.white {
+  background-image: url('./assets/3d/piece/Experimental/White-Knight-Flipped.webp');
+}
+
+.is3d.set-sperimentale .board-host.orientation-white piece.bishop.black {
+  background-image: url('./assets/3d/piece/Experimental/Black-Bishop-Flipped.webp');
+}
+
+.is3d.set-sperimentale .board-host.orientation-white piece.knight.black {
+  background-image: url('./assets/3d/piece/Experimental/Black-Knight-Flipped.webp');
+}
+
+.thumb3d.set-sperimentale {
+  background-image: url('./assets/3d/piece/Experimental/White-Knight.webp');
+}
