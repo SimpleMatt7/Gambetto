@@ -1,132 +1,98 @@
-# Pubblicare Gambetto: GitHub → VPS (aaPanel + Docker)
+# Pubblicare Gambetto su un proprio server
+
+Gambetto gira in un solo contenitore Docker. Serve un server Linux (va bene anche piccolo, x86 o ARM64) con Docker, un dominio e un reverse proxy che aggiunga HTTPS (nginx, Caddy, Traefik o il pannello di gestione del server).
 
 Come funziona, una volta impostato:
 
 1. modifichi il codice e lo mandi su GitHub (`git push`);
-2. GitHub controlla che tutto funzioni e costruisce il contenitore Docker;
-3. la VPS scarica il contenitore nuovo e lo avvia al posto del vecchio.
+2. GitHub controlla che tutto funzioni e costruisce il contenitore;
+3. il server scarica il contenitore nuovo e lo avvia al posto del vecchio.
 
-Il database (account, progressi, partite) sta in un volume Docker sulla VPS e non viene mai toccato dagli aggiornamenti.
+Il database (account, progressi, partite) sta in un volume Docker sul server e non viene toccato dagli aggiornamenti.
 
-Il sito è `https://scacchi.heptagram.it`, il repository è [SimpleMatt7/Gambetto](https://github.com/SimpleMatt7/Gambetto).
-
----
-
-## Parte 1 — GitHub (una volta sola)
-
-### 1.1 Il repository
-
-Il repository pubblico esiste già: https://github.com/SimpleMatt7/Gambetto. Il codice è collegato con
-
-```bash
-git remote add origin https://github.com/SimpleMatt7/Gambetto.git
-```
-
-e ogni invio si fa con
-
-```bash
-git push
-```
-
-### 1.2 Controlla la pipeline
-
-Nella scheda **Actions** del repository parte il flusso "Gambetto". Deve completare due passi: *Controlli e test* e *Contenitore*. Il terzo, *Aggiornamento della VPS*, resta saltato finché non lo abiliti (parte 4).
-
-### 1.3 Il contenitore
-
-A ogni pipeline riuscita il contenitore aggiornato viene pubblicato come `ghcr.io/simplematt7/gambetto:latest`. È pubblico: la VPS lo scarica senza password. Se un giorno il download dalla VPS venisse rifiutato, controlla sul tuo profilo GitHub **Packages → gambetto → Package settings** che la visibilità sia ancora *Public*.
+Negli esempi il sito è `scacchi.example.com` e il repository è `UTENTE/gambetto`: sostituiscili con i tuoi.
 
 ---
 
-## Parte 2 — VPS (una volta sola)
+## 1. GitHub
 
-### 2.1 Sottodominio
+Fai un fork di questo repository, oppure caricalo in uno tuo. A ogni `git push` sul ramo `main` il flusso **Gambetto** (scheda *Actions*) esegue controlli e test, poi costruisce il contenitore e lo pubblica come `ghcr.io/UTENTE/gambetto:latest`.
 
-Nel pannello DNS di heptagram.it crea un record **A**:
+Il contenitore viene costruito per ARM64. Se il tuo server è x86, in `.github/workflows/ci.yml` sostituisci `runs-on: ubuntu-24.04-arm` con `runs-on: ubuntu-latest` nel passo *Contenitore*.
 
-| Nome    | Tipo | Valore                 |
-| ------- | ---- | ---------------------- |
-| scacchi | A    | indirizzo IP della VPS |
+Se il repository è pubblico, il server scarica il contenitore senza password. Se il download venisse rifiutato, controlla che il pacchetto sia pubblico: profilo GitHub → **Packages → gambetto → Package settings**.
 
-Su Oracle Cloud le porte **80** e **443** devono essere aperte sia nella *Security List* della rete sia nel firewall della macchina. Se sulla VPS hai già altri siti raggiungibili, è già a posto.
+## 2. Server
 
-### 2.2 Docker
-
-In aaPanel: **Docker** nel menu laterale → *Install*. Poi verifica dal terminale:
-
-```bash
-docker compose version
-```
-
-### 2.3 I due file che servono
-
-Sulla VPS non serve il codice: bastano `docker-compose.yml` e un file `.env`.
+Servono solo due file: `docker-compose.yml` e `.env`. I comandi vanno eseguiti come `root` (o con un utente che possa usare Docker).
 
 ```bash
 mkdir -p /opt/gambetto && cd /opt/gambetto
 ```
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/SimpleMatt7/Gambetto/main/docker-compose.yml
+curl -fsSLO https://raw.githubusercontent.com/UTENTE/gambetto/main/docker-compose.yml
 ```
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SimpleMatt7/Gambetto/main/.env.example -o .env
+curl -fsSL https://raw.githubusercontent.com/UTENTE/gambetto/main/.env.example -o .env
 ```
 
-Il file `.env` è già pronto così com'è: punta al contenitore `ghcr.io/simplematt7/gambetto` e attiva il cookie sicuro.
+Apri `.env` e controlla che `GAMBETTO_IMAGE` punti al tuo contenitore (nome utente **in minuscolo**). Le altre voci:
 
-### 2.4 Primo avvio
+| Voce            | Significato                                                        |
+| --------------- | ------------------------------------------------------------------ |
+| `COOKIE_SECURE` | `1` sul sito pubblico: il cookie di sessione viaggia solo in HTTPS |
+| `GAMBETTO_PORT` | porta locale su cui risponde il contenitore (predefinita `8787`)   |
+
+Primo avvio:
 
 ```bash
 cd /opt/gambetto && docker compose pull && docker compose up -d --no-build
 ```
 
-Controlla che risponda:
+Verifica:
 
 ```bash
 curl http://127.0.0.1:8787/api/me
 ```
 
-Deve restituire qualcosa come `{"user":null,"config":{...}}`.
+Deve restituire qualcosa come `{"user":null,"config":{...}}`. Il contenitore ascolta solo sulla macchina stessa: dall'esterno ci si arriva dal reverse proxy.
 
----
+## 3. Dominio, HTTPS e reverse proxy
 
-## Parte 3 — aaPanel: dominio, HTTPS e proxy (una volta sola)
+1. Crea un record DNS **A** che punti il tuo dominio all'indirizzo del server, e apri le porte 80 e 443.
+2. Configura il reverse proxy con un certificato HTTPS (per esempio Let's Encrypt) e inoltra tutto a `http://127.0.0.1:8787`.
 
-1. **Website → Add site**: dominio `scacchi.heptagram.it`, senza database e senza PHP.
-2. Apri il sito → **SSL → Let's Encrypt** → richiedi il certificato e attiva *Force HTTPS*.
-3. Apri il sito → **Reverse proxy → Add reverse proxy**:
-   - Target URL: `http://127.0.0.1:8787`
-   - Sent domain: `$host` (è il valore predefinito: va lasciato così)
-
-Apri la configurazione del reverse proxy e controlla che nel blocco `location` ci siano queste righe (servono alle partite online e a riconoscere l'indirizzo dei visitatori):
+Con nginx, il blocco essenziale è questo. Le prime tre righe dopo `proxy_pass` servono alle partite online (WebSocket), le altre a far arrivare al server il dominio e l'indirizzo vero dei visitatori:
 
 ```nginx
-proxy_http_version 1.1;
-proxy_set_header Upgrade $http_upgrade;
-proxy_set_header Connection "upgrade";
-proxy_set_header Host $host;
-proxy_set_header X-Real-IP $remote_addr;
-proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-proxy_set_header X-Forwarded-Proto $scheme;
-proxy_read_timeout 300s;
+location / {
+    proxy_pass http://127.0.0.1:8787;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 300s;
+}
 ```
+
+`Host` deve restare quello richiesto dal visitatore: il server lo usa per rifiutare le richieste provenienti da altri siti.
 
 ### Subito dopo
 
-1. Apri `https://scacchi.heptagram.it` e **registrati immediatamente**: il primo account creato diventa amministratore.
-2. Dalla pagina del tuo account apri il **Pannello admin → Impostazioni** e, se vuoi, metti un contatto per la pagina Privacy.
-3. Quando gli amici si sono registrati, spegni **Registrazioni aperte**.
-4. Prova una partita online con un amico: se compare "Connessione persa", mancano le righe `Upgrade`/`Connection` qui sopra.
+1. Apri il sito e **registrati immediatamente**: il primo account creato diventa amministratore.
+2. Dalla pagina del tuo account apri il **Pannello admin → Impostazioni**: puoi indicare un contatto per la pagina Privacy e, quando chi deve iscriversi si è iscritto, chiudere le registrazioni.
+3. Prova una partita online: se compare "Connessione persa", al proxy mancano le righe `Upgrade` e `Connection`.
 
----
+## 4. Aggiornamento automatico (facoltativo)
 
-## Parte 4 — Aggiornamento automatico (facoltativo)
+Senza questa parte, dopo ogni `git push` aggiorni il server a mano (vedi *Manutenzione*). Con questa parte lo fa GitHub, collegandosi in SSH.
 
-Senza questa parte, dopo ogni `git push` aggiorni la VPS a mano con un comando (vedi "Aggiornare"). Con questa parte lo fa GitHub da solo.
-
-### 4.1 Una chiave dedicata, sulla VPS
+Sul server, crea una chiave dedicata:
 
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/gambetto_deploy -N "" -C "github-gambetto"
@@ -140,31 +106,20 @@ cat ~/.ssh/gambetto_deploy.pub >> ~/.ssh/authorized_keys
 cat ~/.ssh/gambetto_deploy
 ```
 
-L'ultimo comando mostra la chiave **privata**: va copiata per intero, righe `BEGIN` e `END` comprese, e incollata solo nel segreto qui sotto. Non va scritta in chat, in email o in altri file.
-
-### 4.2 Segreti e variabile, su GitHub
+L'ultimo comando mostra la chiave **privata**: va copiata per intero, righe `BEGIN` e `END` comprese, e incollata solo nel segreto qui sotto.
 
 Nel repository: **Settings → Secrets and variables → Actions**.
 
-Scheda **Secrets**:
+| Tipo     | Nome             | Valore                                    |
+| -------- | ---------------- | ----------------------------------------- |
+| Secret   | `VPS_HOST`       | indirizzo o nome del server               |
+| Secret   | `VPS_USER`       | utente con cui hai creato la chiave       |
+| Secret   | `VPS_SSH_KEY`    | la chiave privata                         |
+| Secret   | `VPS_PORT`       | solo se la porta SSH non è la 22          |
+| Variable | `DEPLOY_ENABLED` | `true`                                    |
+| Variable | `DEPLOY_PATH`    | solo se la cartella non è `/opt/gambetto` |
 
-| Nome          | Valore                                              |
-| ------------- | --------------------------------------------------- |
-| `VPS_HOST`    | indirizzo IP o nome della VPS                       |
-| `VPS_USER`    | utente con cui hai creato la chiave (es. `root`)    |
-| `VPS_SSH_KEY` | la chiave privata copiata al punto 4.1              |
-| `VPS_PORT`    | solo se la porta SSH non è la 22                    |
-
-Scheda **Variables**:
-
-| Nome             | Valore |
-| ---------------- | ------ |
-| `DEPLOY_ENABLED` | `true` |
-| `DEPLOY_PATH`    | solo se la cartella non è `/opt/gambetto` |
-
-Su Oracle Cloud la porta SSH deve essere raggiungibile da Internet perché GitHub possa collegarsi.
-
----
+L'utente deve poter usare Docker, e la porta SSH del server deve essere raggiungibile da Internet.
 
 ## Manutenzione
 
@@ -174,17 +129,15 @@ Su Oracle Cloud la porta SSH deve essere raggiungibile da Internet perché GitHu
 cd /opt/gambetto && docker compose pull && docker compose up -d --no-build
 ```
 
-**Tornare a una versione precedente**: nel file `.env` sostituisci `:latest` con `:` seguito dal codice del commit che vuoi (lo vedi su GitHub), poi ripeti il comando di aggiornamento.
+**Tornare a una versione precedente**: nel file `.env` sostituisci `:latest` con `:` seguito dal codice del commit voluto, poi ripeti il comando di aggiornamento.
 
-**Backup** del database in un file con la data di oggi:
+**Backup** del database in un file con la data di oggi (adatto a un'operazione pianificata notturna):
 
 ```bash
 cd /opt/gambetto && docker compose exec gambetto node -e "const {DatabaseSync}=require('node:sqlite');require('node:fs').rmSync('/data/backup.db',{force:true});new DatabaseSync('/data/gambetto.db').exec(\"VACUUM INTO '/data/backup.db'\")" && docker compose cp gambetto:/data/backup.db ./backup-$(date +%F).db
 ```
 
-Per farlo ogni notte, aggiungi lo stesso comando in aaPanel → **Cron**.
-
-**Vedere i log**:
+**Log**:
 
 ```bash
 cd /opt/gambetto && docker compose logs -f --tail 100
@@ -204,25 +157,21 @@ cd /opt/gambetto && docker compose exec gambetto node server/cli.ts passwd NOME_
 cd /opt/gambetto && docker compose exec gambetto node server/cli.ts admin NOME_UTENTE
 ```
 
----
-
-## In locale, sul tuo PC
-
-**Con Docker, identico alla VPS.** Docker è installato dentro Ubuntu (WSL). Doppio clic su `Avvia Gambetto (Docker).bat`: costruisce il contenitore dai sorgenti, lo avvia e apre http://localhost:8787. La finestra va lasciata aperta, perché chiudendola WSL si spegne e con lui il contenitore. Per ripartire da un database vuoto:
+## In locale
 
 ```bash
-wsl -d Ubuntu -u root -- docker compose down -v
+npm install && npm start
 ```
 
-**Senza Docker**, più rapido per l'uso di tutti i giorni: doppio clic su `Avvia Gambetto.bat`, oppure
+Compila l'app e avvia il server su http://localhost:8787, con il database nella cartella `data`.
+
+Per provare lo stesso contenitore che andrà sul server:
 
 ```bash
-npm start
+docker compose up -d --build
 ```
 
-Compila l'app e avvia il server su http://localhost:8787, con il database nella cartella `data`. I due modi usano database separati e la stessa porta: se ne tiene acceso uno alla volta.
-
-Per provare una partita online da solo, creane una e poi fai entrare un avversario automatico (mosse a caso), mettendo il codice che vedi alla fine del link:
+Per provare una partita online da soli, creane una e fai entrare un avversario automatico (mosse a caso), indicando il codice che compare alla fine del link:
 
 ```bash
 node scripts/dev-bot.ts CODICE_PARTITA
