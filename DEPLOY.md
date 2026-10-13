@@ -32,9 +32,9 @@ git push
 
 Nella scheda **Actions** del repository parte il flusso "Gambetto". Deve completare due passi: *Controlli e test* e *Contenitore*. Il terzo, *Aggiornamento della VPS*, resta saltato finché non lo abiliti (parte 4).
 
-### 1.3 Rendi pubblico il contenitore
+### 1.3 Il contenitore
 
-Il contenitore appena costruito nasce privato. Sul tuo profilo GitHub: **Packages → gambetto → Package settings → Change visibility → Public**. Si fa una volta sola, dopo la prima pipeline riuscita.
+A ogni pipeline riuscita il contenitore aggiornato viene pubblicato come `ghcr.io/simplematt7/gambetto:latest`. È pubblico: la VPS lo scarica senza password. Se un giorno il download dalla VPS venisse rifiutato, controlla sul tuo profilo GitHub **Packages → gambetto → Package settings** che la visibilità sia ancora *Public*.
 
 ---
 
