@@ -96,7 +96,31 @@ location / {
 
 ## 4. Aggiornamento automatico (facoltativo)
 
-Senza questa parte, dopo ogni `git push` aggiorni il server a mano (vedi *Manutenzione*). Con questa parte lo fa GitHub, collegandosi in SSH.
+Senza questa parte, dopo ogni `git push` aggiorni il server a mano (vedi *Manutenzione*).
+
+Ci sono due modi. Il primo è il più semplice e non richiede né chiavi né porte aperte.
+
+### Modo consigliato: il server controlla da solo
+
+Un'operazione pianificata sul server, ogni cinque minuti, chiede a GitHub se c'è un contenitore più recente e in quel caso lo avvia. Se non c'è nulla di nuovo non succede niente: il sito non viene riavviato.
+
+Il comando da pianificare (con cron, oppure dal pannello di gestione del server), eseguito come `root`:
+
+```bash
+cd /opt/gambetto && docker compose pull -q && docker compose up -d --no-build && docker image prune -f > /dev/null
+```
+
+Con cron, la riga corrispondente è:
+
+```
+*/5 * * * * cd /opt/gambetto && docker compose pull -q && docker compose up -d --no-build && docker image prune -f > /dev/null 2>&1
+```
+
+Dopo un `git push` il sito si aggiorna da solo entro pochi minuti dalla fine della pipeline.
+
+### In alternativa: GitHub si collega al server in SSH
+
+Aggiorna subito, senza attese, ma richiede una chiave SSH salvata tra i segreti di GitHub e la porta SSH raggiungibile da Internet.
 
 Sul server, crea una chiave dedicata:
 
