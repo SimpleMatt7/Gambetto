@@ -104,8 +104,10 @@ Sul server, crea una chiave dedicata:
 ssh-keygen -t ed25519 -f ~/.ssh/gambetto_deploy -N "" -C "github-gambetto"
 ```
 
+Poi autorizzala, ma solo per l'aggiornamento: con questa riga la chiave non apre un terminale, può soltanto scaricare e riavviare il contenitore.
+
 ```bash
-cat ~/.ssh/gambetto_deploy.pub >> ~/.ssh/authorized_keys
+echo "command=\"cd /opt/gambetto && docker compose pull && docker compose up -d --no-build && docker image prune -f\",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty $(cat ~/.ssh/gambetto_deploy.pub)" >> ~/.ssh/authorized_keys
 ```
 
 ```bash

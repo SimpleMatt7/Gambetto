@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Board, type Arrow } from '../components/Board.tsx';
+import { Trail } from '../components/Trail.tsx';
 import { Confetti, Icon, Rich } from '../components/ui.tsx';
 import { COURSES, START_FEN, type Course, type Lesson, type Step } from '../data/lessons.ts';
 import { useAccount } from '../lib/account.ts';
@@ -97,6 +98,10 @@ function LessonPlayer({ course, lesson }: { course: Course; lesson: Lesson }) {
   const [wrong, setWrong] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Posizioni attraversate nell'esercizio, per poterle rivedere una a una.
+  const [frames, setFrames] = useState<{ fen: string; last: [string, string] | null }[]>([{ fen: start.chess.fen(), last: start.last }]);
+  const [sans, setSans] = useState<string[]>([]);
+  const [view, setView] = useState<number | null>(null);
   const timer = useRef(0);
 
   const reset = () => {
@@ -110,6 +115,9 @@ function LessonPlayer({ course, lesson }: { course: Course; lesson: Lesson }) {
     setWrong(0);
     setShowHint(false);
     setBusy(false);
+    setFrames([{ fen: s.chess.fen(), last: s.last }]);
+    setSans([]);
+    setView(null);
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(reset, [step]);
@@ -119,7 +127,7 @@ function LessonPlayer({ course, lesson }: { course: Course; lesson: Lesson }) {
   const orientation = step.orientation ?? (step.line ? userSide : 'white');
 
   const onMove = (from: string, to: string, promotion?: string) => {
-    if (!step.line || solved || busy) return false;
+    if (!step.line || solved || busy || view !== null) return false;
     const game = chess.current;
     const probe = new Chess(game.fen());
     let san: string;
@@ -139,6 +147,8 @@ function LessonPlayer({ course, lesson }: { course: Course; lesson: Lesson }) {
     sfx.forMove(san);
     setFen(game.fen());
     setLast([from, to]);
+    setFrames((f) => [...f, { fen: game.fen(), last: [from, to] }]);
+    setSans((s) => [...s, san]);
     setShowHint(false);
     setWrong(0);
     if (isLast) {
@@ -153,6 +163,8 @@ function LessonPlayer({ course, lesson }: { course: Course; lesson: Lesson }) {
       sfx.forMove(reply.san);
       setFen(game.fen());
       setLast([reply.from, reply.to]);
+      setFrames((f) => [...f, { fen: game.fen(), last: [reply.from, reply.to] }]);
+      setSans((s) => [...s, reply.san]);
       setPos(pos + 2);
       setBusy(false);
     }, 650);
@@ -237,11 +249,11 @@ function LessonPlayer({ course, lesson }: { course: Course; lesson: Lesson }) {
       <div className="game-layout">
         <div className="board-col">
           <Board
-            fen={fen}
+            fen={view === null ? fen : frames[view].fen}
             orientation={orientation}
-            movable={step.line && !solved && !busy ? userSide : 'none'}
-            lastMove={last}
-            arrows={stepArrows}
+            movable={step.line && !solved && !busy && view === null ? userSide : 'none'}
+            lastMove={view === null ? last : frames[view].last}
+            arrows={view === null ? stepArrows : []}
             circles={step.line ? [] : step.squares}
             onMove={onMove}
             className={wrong ? (wrong % 2 ? 'shake-a' : 'shake-b') : ''}
@@ -288,6 +300,10 @@ function LessonPlayer({ course, lesson }: { course: Course; lesson: Lesson }) {
               </div>
             )}
           </div>
+
+          {step.line && sans.length > 0 && (
+            <Trail startFen={frames[0].fen} sans={sans} view={view ?? sans.length} onView={(n) => setView(n >= sans.length ? null : Math.max(0, n))} />
+          )}
 
           <div className="lesson-actions">
             <button className="btn ghost" onClick={() => setIndex(index - 1)} disabled={index === 0}>

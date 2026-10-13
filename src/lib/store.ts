@@ -46,6 +46,8 @@ export interface AppState {
   /** Aperture e trappole allenate fino in fondo. */
   lines: string[];
   stats: Record<number, { w: number; l: number; d: number }>;
+  /** Problemi tattici: punteggio (tipo Elo) e identificativi dei problemi affrontati. */
+  puzzles: { rating: number; solved: string[]; failed: string[] };
 }
 
 const KEY = 'gambetto:v1';
@@ -54,12 +56,13 @@ const defaults: AppState = {
   lessons: [],
   lines: [],
   stats: {},
+  puzzles: { rating: 1000, solved: [], failed: [] },
 };
 
 function load(): AppState {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) ?? '{}');
-    return { ...defaults, ...raw, settings: { ...defaults.settings, ...raw.settings } };
+    return { ...defaults, ...raw, settings: { ...defaults.settings, ...raw.settings }, puzzles: { ...defaults.puzzles, ...raw.puzzles } };
   } catch {
     return defaults;
   }
@@ -111,4 +114,25 @@ export function recordResult(level: number, outcome: 'w' | 'l' | 'd') {
     const cur = s.stats[level] ?? { w: 0, l: 0, d: 0 };
     return { ...s, stats: { ...s.stats, [level]: { ...cur, [outcome]: cur[outcome] + 1 } } };
   });
+}
+
+/**
+ * Registra l'esito di un problema e aggiorna il punteggio con la formula Elo: si guadagna di più risolvendo
+ * problemi difficili, si perde di più sbagliando quelli facili. Conta solo il primo tentativo su ogni problema.
+ * Restituisce la variazione del punteggio.
+ */
+export function recordPuzzle(id: string, puzzleRating: number, ok: boolean): number {
+  const { puzzles } = state;
+  const seen = puzzles.solved.includes(id) || puzzles.failed.includes(id);
+  const expected = 1 / (1 + 10 ** ((puzzleRating - puzzles.rating) / 400));
+  const delta = seen ? 0 : Math.round(32 * ((ok ? 1 : 0) - expected));
+  update((s) => ({
+    ...s,
+    puzzles: {
+      rating: Math.max(400, Math.min(3000, s.puzzles.rating + delta)),
+      solved: ok && !s.puzzles.solved.includes(id) ? [...s.puzzles.solved, id] : s.puzzles.solved,
+      failed: !ok && !seen ? [...s.puzzles.failed, id] : s.puzzles.failed,
+    },
+  }));
+  return delta;
 }

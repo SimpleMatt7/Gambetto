@@ -88,7 +88,7 @@ function SignIn() {
 
 function Profile() {
   const { user } = useAccount();
-  const { lessons, lines, stats } = useStore();
+  const { lessons, lines, stats, puzzles } = useStore();
   const [current, setCurrent] = useState('');
   const [password, setPassword] = useState('');
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
@@ -145,6 +145,10 @@ function Profile() {
             <small>/{OPENINGS.length + TRICKS.length}</small>
           </dt>
           <dd>aperture e trappole allenate</dd>
+        </div>
+        <div>
+          <dt>{puzzles.rating}</dt>
+          <dd>punteggio nei problemi · {puzzles.solved.length} risolti</dd>
         </div>
         <div>
           <dt>{totals.w}</dt>

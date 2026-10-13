@@ -43,7 +43,7 @@ function DemoBoard() {
 }
 
 export function Home() {
-  const { lessons, lines, stats } = useStore();
+  const { lessons, lines, stats, puzzles } = useStore();
   const totalLessons = COURSES.reduce((n, c) => n + c.lessons.length, 0);
   const wins = Object.values(stats).reduce((n, s) => n + s.w, 0);
   const games = Object.values(stats).reduce((n, s) => n + s.w + s.l + s.d, 0);
@@ -55,6 +55,7 @@ export function Home() {
     { to: href('gioca'), icon: 'cpu', title: 'Sfida il computer', text: 'Otto livelli, dal principiante al Gran Maestro. Con suggerimenti, annulla mossa e orologio.', cta: 'Gioca' },
     { to: href('gioca', { mode: 'local' }), icon: 'users', title: 'Due giocatori', text: 'Sullo stesso schermo, dal vivo, oppure online a distanza mandando un link a un amico.', cta: 'Apri la scacchiera', alt: { to: href('online'), label: 'Gioca online' } },
     { to: href('impara'), icon: 'book', title: 'Impara', text: `${totalLessons} lezioni interattive in tre percorsi: base, intermedio e avanzato.`, cta: 'Inizia a studiare' },
+    { to: href('problemi'), icon: 'bulb', title: 'Problemi tattici', text: `Trova la mossa vincente in posizioni tratte da partite vere. Il punteggio sale con te: ora sei a ${puzzles.rating}.`, cta: 'Risolvi un problema' },
     { to: href('aperture'), icon: 'spark', title: 'Aperture e chicche', text: `${OPENINGS.length} aperture famose e ${TRICKS.length} trappole da imparare a memoria e provare in partita.`, cta: 'Sfoglia il repertorio' },
   ];
 

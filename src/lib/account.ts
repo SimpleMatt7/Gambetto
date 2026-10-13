@@ -7,7 +7,7 @@ export interface User {
   role: 'user' | 'admin';
 }
 
-type Progress = Partial<Pick<AppState, 'lessons' | 'lines' | 'stats'>>;
+type Progress = Partial<Pick<AppState, 'lessons' | 'lines' | 'stats' | 'puzzles'>>;
 
 export class ApiError extends Error {
   status: number;
@@ -72,8 +72,8 @@ export function useAccount(): Account {
 }
 
 const snapshot = () => {
-  const { lessons, lines, stats } = getState();
-  return JSON.stringify({ lessons, lines, stats });
+  const { lessons, lines, stats, puzzles } = getState();
+  return JSON.stringify({ lessons, lines, stats, puzzles });
 };
 
 let lastPushed = '';
@@ -113,9 +113,19 @@ function adopt(user: User, remote: Progress, config?: SiteConfig) {
       lessons: [...new Set([...s.lessons, ...(remote.lessons ?? [])])],
       lines: [...new Set([...s.lines, ...(remote.lines ?? [])])],
       stats,
+      puzzles: mergePuzzles(s.puzzles, remote.puzzles),
     };
   });
   void push();
+}
+
+/** Unisce i problemi affrontati; come punteggio vale quello di chi ne ha affrontati di più. */
+function mergePuzzles(mine: AppState['puzzles'], theirs?: AppState['puzzles']): AppState['puzzles'] {
+  if (!theirs) return mine;
+  const solved = [...new Set([...mine.solved, ...theirs.solved])];
+  const failed = [...new Set([...mine.failed, ...theirs.failed])].filter((id) => !solved.includes(id));
+  const more = theirs.solved.length + theirs.failed.length > mine.solved.length + mine.failed.length ? theirs : mine;
+  return { rating: more.rating, solved, failed };
 }
 
 export async function initAccount() {
@@ -153,7 +163,7 @@ function forget() {
   window.clearTimeout(pushTimer);
   setAccount({ ...account, user: null, ready: true });
   lastPushed = '';
-  update((s) => ({ ...s, lessons: [], lines: [], stats: {} }));
+  update((s) => ({ ...s, lessons: [], lines: [], stats: {}, puzzles: { rating: 1000, solved: [], failed: [] } }));
 }
 
 export async function deleteAccount(password: string) {

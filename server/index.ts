@@ -116,7 +116,10 @@ function cleanProgress(body: Record<string, unknown>) {
       stats[level] = { w: n(s.w), l: n(s.l), d: n(s.d) };
     }
   }
-  return { lessons: list(body.lessons), lines: list(body.lines), stats };
+  const ids = (v: unknown) => (Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string' && x.length <= 12))].slice(0, 5000) : []);
+  const p = (typeof body.puzzles === 'object' && body.puzzles !== null ? body.puzzles : {}) as Record<string, unknown>;
+  const rating = typeof p.rating === 'number' && Number.isFinite(p.rating) ? Math.max(400, Math.min(3000, Math.round(p.rating))) : 1000;
+  return { lessons: list(body.lessons), lines: list(body.lines), stats, puzzles: { rating, solved: ids(p.solved), failed: ids(p.failed) } };
 }
 
 const GAME_LIST = `

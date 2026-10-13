@@ -116,6 +116,8 @@ function LineView({ line }: { line: Line }) {
   const [wrong, setWrong] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  // In allenamento si possono rivedere le mosse già giocate: `view` è la posizione mostrata, null = l'ultima.
+  const [view, setView] = useState<number | null>(null);
   const total = moves.length;
   const complete = mode === 'train' && ply === total;
 
@@ -176,11 +178,19 @@ function LineView({ line }: { line: Line }) {
     setWrong(0);
   };
 
+  const peek = (to: number) => {
+    const n = Math.max(0, Math.min(ply, to));
+    setView(n === ply ? null : n);
+  };
+  // Appena arriva una mossa nuova si torna alla posizione attuale.
+  useEffect(() => setView(null), [ply, mode]);
+
   useEffect(() => {
-    if (mode !== 'study') return;
+    const move = mode === 'study' ? step : peek;
+    const at = mode === 'study' ? ply : (view ?? ply);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') step(ply - 1);
-      else if (e.key === 'ArrowRight') step(ply + 1);
+      if (e.key === 'ArrowLeft') move(at - 1);
+      else if (e.key === 'ArrowRight') move(at + 1);
       else return;
       e.preventDefault();
     };
@@ -189,7 +199,7 @@ function LineView({ line }: { line: Line }) {
   });
 
   const onMove = (from: string, to: string, promotion?: string) => {
-    if (mode !== 'train' || ply >= total || !userToMove) return false;
+    if (mode !== 'train' || ply >= total || !userToMove || view !== null) return false;
     const expected = moves[ply];
     let san: string;
     try {
@@ -212,12 +222,13 @@ function LineView({ line }: { line: Line }) {
   const movesEl = useRef<HTMLDivElement>(null);
   useEffect(() => {
     movesEl.current?.querySelector('.current')?.scrollIntoView({ block: 'nearest' });
-  }, [ply]);
+  }, [ply, view]);
 
-  const last = ply > 0 ? moves[ply - 1] : null;
+  const shown = mode === 'train' && view !== null ? view : ply;
+  const last = shown > 0 ? moves[shown - 1] : null;
   const arrows: Arrow[] =
-    mode === 'train' && userToMove && ply < total && (showHint || wrong >= 3) ? [{ from: moves[ply].from, to: moves[ply].to, brush: 'blue' }] : [];
-  const note = line.notes?.[ply];
+    mode === 'train' && view === null && userToMove && ply < total && (showHint || wrong >= 3) ? [{ from: moves[ply].from, to: moves[ply].to, brush: 'blue' }] : [];
+  const note = line.notes?.[shown];
   const sanList = line.moves.split(' ');
   // Le aperture proseguono dalla posizione finale; le trappole si tentano dall'inizio.
   const continueQuery = { moves: isTrick ? '' : sanList.join(','), title: line.name, go: '1' };
@@ -232,9 +243,9 @@ function LineView({ line }: { line: Line }) {
       <div className="game-layout">
         <div className="board-col">
           <Board
-            fen={fens[ply]}
+            fen={fens[shown]}
             orientation={side}
-            movable={mode === 'train' && userToMove && ply < total ? side : 'none'}
+            movable={mode === 'train' && view === null && userToMove && ply < total ? side : 'none'}
             lastMove={last ? [last.from, last.to] : null}
             arrows={arrows}
             onMove={onMove}
@@ -282,7 +293,7 @@ function LineView({ line }: { line: Line }) {
                       ?
                     </span>
                   ) : (
-                    <button key={idx} className={`move-cell ${ply === idx + 1 ? 'current' : ''} ${line.notes?.[idx + 1] ? 'noted' : ''}`} onClick={() => mode === 'study' && step(idx + 1)}>
+                    <button key={idx} className={`move-cell ${shown === idx + 1 ? 'current' : ''} ${line.notes?.[idx + 1] ? 'noted' : ''}`} onClick={() => (mode === 'study' ? step(idx + 1) : peek(idx + 1))}>
                       {sanIt(sanList[idx])}
                     </button>
                   ),
@@ -314,7 +325,7 @@ function LineView({ line }: { line: Line }) {
               </div>
             ) : note ? (
               <p className="note">
-                <strong>{sanIt(sanList[ply - 1])}</strong> — {note}
+                <strong>{sanIt(sanList[shown - 1])}</strong> — {note}
               </p>
             ) : mode === 'train' ? (
               <p className="note dim">{userToMove ? `Tocca a te: gioca la mossa ${Math.floor(ply / 2) + 1} del ${side === 'white' ? 'Bianco' : 'Nero'}.` : 'Il computer risponde…'}</p>
@@ -352,14 +363,32 @@ function LineView({ line }: { line: Line }) {
               </button>
             </div>
           ) : (
-            <div className="action-grid">
+            <>
+              {ply > 0 && (
+                <div className="nav-row">
+                  <button className="icon-btn" onClick={() => peek(0)} disabled={shown === 0} title="Inizio">
+                    <Icon name="first" />
+                  </button>
+                  <button className="icon-btn" onClick={() => peek(shown - 1)} disabled={shown === 0} title="Mossa precedente (←)">
+                    <Icon name="prev" />
+                  </button>
+                  <button className="icon-btn" onClick={() => peek(shown + 1)} disabled={shown === ply} title="Mossa successiva (→)">
+                    <Icon name="next" />
+                  </button>
+                  <button className="icon-btn" onClick={() => peek(ply)} disabled={shown === ply} title="Posizione attuale">
+                    <Icon name="last" />
+                  </button>
+                </div>
+              )}
+              <div className="action-grid">
               <button className="btn ghost" onClick={() => setShowHint(true)} disabled={complete || !userToMove}>
                 <Icon name="bulb" /> Aiuto
               </button>
               <button className="btn ghost" onClick={() => startTrain()}>
                 <Icon name="undo" /> Ricomincia
               </button>
-            </div>
+              </div>
+            </>
           )}
 
           <details className="ideas" open={mode === 'study'}>

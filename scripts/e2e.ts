@@ -77,8 +77,9 @@ async function main() {
   check('richiesta da un altro sito bloccata', r.status === 403, r);
 
   // ── Progressi ──
-  r = await bruno.call('PUT', '/api/progress', { lessons: ['base/pedone', 'base/pedone', 42], lines: ['italiana'], stats: { 3: { w: 2, l: 1, d: 0 } }, extra: 'x' });
+  r = await bruno.call('PUT', '/api/progress', { lessons: ['base/pedone', 'base/pedone', 42], lines: ['italiana'], stats: { 3: { w: 2, l: 1, d: 0 } }, puzzles: { rating: 99999, solved: ['abc12', 'abc12', 7], failed: 'no' }, extra: 'x' });
   check('progressi salvati e ripuliti', r.data.progress?.lessons.length === 1 && r.data.progress.stats['3'].w === 2 && !('extra' in r.data.progress), r);
+  check('problemi tattici: punteggio limitato e elenchi ripuliti', r.data.progress?.puzzles?.rating === 3000 && r.data.progress.puzzles.solved.length === 1 && r.data.progress.puzzles.failed.length === 0, r.data.progress?.puzzles);
   const bruno2 = new Client();
   r = await bruno2.call('POST', '/api/login', { username: 'bruno', password: 'password-bruno' });
   check('progressi ritrovati da un altro dispositivo', r.data.progress?.lines[0] === 'italiana', r);

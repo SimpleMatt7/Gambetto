@@ -11,6 +11,7 @@ import { Online } from './pages/Online.tsx';
 import { Openings } from './pages/Openings.tsx';
 import { Play } from './pages/Play.tsx';
 import { Privacy } from './pages/Privacy.tsx';
+import { Puzzles } from './pages/Puzzles.tsx';
 
 const THEMES: { id: BoardTheme; name: string }[] = [
   { id: 'noce', name: 'Noce' },
@@ -71,6 +72,7 @@ const NAV = [
   { path: 'gioca', label: 'Gioca' },
   { path: 'online', label: 'Online' },
   { path: 'impara', label: 'Impara' },
+  { path: 'problemi', label: 'Problemi' },
   { path: 'aperture', label: 'Aperture' },
 ];
 
@@ -172,6 +174,7 @@ export function App() {
     account: <Account />,
     admin: <Admin />,
     privacy: <Privacy />,
+    problemi: <Puzzles />,
   };
   const page = PAGES[section] ?? <Home />;
   // La chiave fa ripartire l'animazione d'ingresso a ogni cambio di sezione.

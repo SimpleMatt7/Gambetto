@@ -2,6 +2,7 @@
 import { Chess } from 'chess.js';
 import { COURSES, START_FEN } from '../src/data/lessons.ts';
 import { OPENINGS, TRICKS, OPERA_GAME } from '../src/data/openings.ts';
+import puzzles from '../src/data/puzzles.json' with { type: 'json' };
 
 let errors = 0;
 const fail = (where: string, msg: string) => {
@@ -62,6 +63,22 @@ for (const line of [...OPENINGS, ...TRICKS, { id: 'opera', moves: OPERA_GAME, no
   if (line.moves.endsWith('#') && !chess.isCheckmate()) fail(line.id, 'atteso matto');
 }
 
+// Problemi tattici: ogni mossa della soluzione dev'essere legale e gli identificativi unici.
+const seen = new Set<string>();
+for (const [id, fen, moveText, rating] of puzzles as [string, string, string, number, string][]) {
+  if (seen.has(id)) fail(`problema ${id}`, 'identificativo ripetuto');
+  seen.add(id);
+  if (!(rating >= 400 && rating <= 3000)) fail(`problema ${id}`, `difficoltà ${rating} fuori scala`);
+  try {
+    const chess = new Chess(fen);
+    const moves = moveText.split(' ');
+    if (moves.length < 2 || moves.length % 2) fail(`problema ${id}`, 'numero di mosse non valido');
+    for (const uci of moves) chess.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] });
+  } catch (e) {
+    fail(`problema ${id}`, (e as Error).message);
+  }
+}
+
 const lessons = COURSES.reduce((n, c) => n + c.lessons.length, 0);
-console.log(errors ? `\n${errors} errori` : `✓ ${lessons} lezioni, ${OPENINGS.length} aperture, ${TRICKS.length} chicche: tutto legale`);
+console.log(errors ? `\n${errors} errori` : `✓ ${lessons} lezioni, ${OPENINGS.length} aperture, ${TRICKS.length} chicche, ${puzzles.length} problemi: tutto legale`);
 process.exit(errors ? 1 : 0);
