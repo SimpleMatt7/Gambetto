@@ -84,8 +84,14 @@ location / {
 
 ### Subito dopo
 
-1. Apri il sito e **registrati immediatamente**: il primo account creato diventa amministratore.
-2. Dalla pagina del tuo account apri il **Pannello admin → Impostazioni**: puoi indicare un contatto per la pagina Privacy e, quando chi deve iscriversi si è iscritto, chiudere le registrazioni.
+1. Crea l'account amministratore direttamente sul server, prima di far conoscere l'indirizzo. Il comando chiede la password due volte, senza mostrarla:
+
+   ```bash
+   cd /opt/gambetto && docker compose exec gambetto node server/cli.ts crea-admin NOME_UTENTE
+   ```
+
+   In alternativa, il primo account che si registra dal sito diventa amministratore.
+2. Accedi dal sito e, dalla pagina del tuo account, apri il **Pannello admin → Impostazioni**: puoi indicare un contatto per la pagina Privacy e, quando chi deve iscriversi si è iscritto, chiudere le registrazioni.
 3. Prova una partita online: se compare "Connessione persa", al proxy mancano le righe `Upgrade` e `Connection`.
 
 ## 4. Aggiornamento automatico (facoltativo)
@@ -150,7 +156,7 @@ cd /opt/gambetto && docker compose exec gambetto node server/cli.ts list
 ```
 
 ```bash
-cd /opt/gambetto && docker compose exec gambetto node server/cli.ts passwd NOME_UTENTE NUOVA_PASSWORD
+cd /opt/gambetto && docker compose exec gambetto node server/cli.ts passwd NOME_UTENTE
 ```
 
 ```bash
