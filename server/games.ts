@@ -24,6 +24,10 @@ const CLAIM_MS = Number(process.env.CLAIM_MS ?? 120_000);
 
 const rooms = new Map<string, Room>();
 
+/** Quanti collegamenti può avere una partita, e quanti messaggi può mandare ciascuno in dieci secondi. */
+const MAX_ROOM_SOCKETS = 40;
+const MAX_BURST = 60;
+
 export const TIME_CONTROLS: Record<string, [number, number]> = {
   none: [0, 0],
   '3+2': [180, 2],
@@ -222,6 +226,7 @@ function onMessage(room: Room, socket: WebSocket, userId: number | null, raw: st
   } catch {
     return;
   }
+  if (typeof msg !== 'object' || msg === null) return;
   const side = sideOf(room, userId);
   const r = room.row;
   if (!side) return;
@@ -279,9 +284,30 @@ export function joinGame(id: string, socket: WebSocket, user: UserRow | null, al
     return false;
   }
 
+  // Troppi collegamenti alla stessa partita: i giocatori entrano sempre, gli altri no.
+  if (room.sockets.size >= MAX_ROOM_SOCKETS && sideOf(room, userId) === null) {
+    release(room);
+    return false;
+  }
+
   room.sockets.set(socket, userId);
   markPresence(room);
-  socket.on('message', (data) => onMessage(room, socket, userId, String(data)));
+  // Chi manda messaggi a raffica viene scollegato: nessuna partita vera ne richiede così tanti.
+  let burst = 0;
+  let burstStart = Date.now();
+  socket.on('message', (data) => {
+    const now = Date.now();
+    if (now - burstStart > 10_000) {
+      burst = 0;
+      burstStart = now;
+    }
+    if (++burst > MAX_BURST) return socket.terminate();
+    try {
+      onMessage(room, socket, userId, String(data));
+    } catch (e) {
+      console.error(e);
+    }
+  });
   socket.on('close', () => {
     room.sockets.delete(socket);
     markPresence(room);

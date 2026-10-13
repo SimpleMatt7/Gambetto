@@ -12,7 +12,8 @@
     "validate": "node scripts/validate.ts",
     "server": "node --disable-warning=ExperimentalWarning server/index.ts",
     "start": "npm run build && npm run server",
-    "test:server": "node --disable-warning=ExperimentalWarning scripts/e2e.ts"
+    "test:server": "node --disable-warning=ExperimentalWarning scripts/e2e.ts",
+    "test:sicurezza": "node --disable-warning=ExperimentalWarning scripts/sicurezza.ts"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

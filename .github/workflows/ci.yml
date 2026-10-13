@@ -29,6 +29,8 @@ jobs:
         run: npm run test:server
       - name: Compilazione dell'app
         run: npm run build
+      - name: Il server regge un utente malintenzionato
+        run: npm run test:sicurezza
 
   immagine:
     name: Contenitore

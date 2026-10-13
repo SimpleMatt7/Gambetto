@@ -398,7 +398,13 @@ const COMPRESSIBLE = new Set(['.html', '.js', '.css', '.svg', '.json', '.webmani
 const compressed = new Map<string, Buffer>();
 
 function serveStatic(req: IncomingMessage, res: ServerResponse, path: string) {
-  let file = normalize(join(DIST, decodeURIComponent(path)));
+  let decoded = '/';
+  try {
+    decoded = decodeURIComponent(path);
+  } catch {
+    // Indirizzo scritto male: si serve la pagina principale.
+  }
+  let file = normalize(join(DIST, decoded));
   if (!file.startsWith(DIST)) file = join(DIST, 'index.html');
   if (!existsSync(file) || statSync(file).isDirectory()) file = join(DIST, 'index.html');
   if (!existsSync(file)) {
@@ -427,24 +433,50 @@ function serveStatic(req: IncomingMessage, res: ServerResponse, path: string) {
   createReadStream(file).pipe(res);
 }
 
+/** Percorso e parametri di una richiesta, oppure null se l'indirizzo non è valido. */
+function parseUrl(req: IncomingMessage) {
+  try {
+    return new URL((req.url ?? '/').replace(/^\/+/, '/'), 'http://localhost');
+  } catch {
+    return null;
+  }
+}
+
 const server = createServer((req, res) => {
-  const path = new URL(req.url ?? '/', 'http://localhost').pathname;
-  if (path.startsWith('/api/')) void handleApi(req, res, path);
-  else if (req.method === 'GET' || req.method === 'HEAD') serveStatic(req, res, path);
-  else res.writeHead(405).end();
+  try {
+    const path = parseUrl(req)?.pathname;
+    if (!path) res.writeHead(400).end();
+    else if (path.startsWith('/api/')) void handleApi(req, res, path);
+    else if (req.method === 'GET' || req.method === 'HEAD') serveStatic(req, res, path);
+    else res.writeHead(405).end();
+  } catch (e) {
+    console.error(e);
+    if (!res.headersSent) res.writeHead(500);
+    res.end();
+  }
 });
 
 const wss = new WebSocketServer({ noServer: true, maxPayload: 2048 });
 
+// Tetto ai collegamenti aperti in tutto il sito: oltre, i nuovi vengono rifiutati.
+const MAX_SOCKETS = 2000;
+
 server.on('upgrade', (req, socket, head) => {
-  const url = new URL(req.url ?? '/', 'http://localhost');
-  const gameId = url.searchParams.get('game') ?? '';
-  if (url.pathname !== '/ws' || !sameOrigin(req) || !/^[a-z0-9]{1,16}$/.test(gameId)) return socket.destroy();
+  const url = parseUrl(req);
+  const gameId = url?.searchParams.get('game') ?? '';
+  if (url?.pathname !== '/ws' || !sameOrigin(req) || !/^[a-z0-9]{1,16}$/.test(gameId) || wss.clients.size >= MAX_SOCKETS) return socket.destroy();
   wss.handleUpgrade(req, socket, head, (ws) => {
+    // Senza un ascoltatore, un errore su un collegamento (per esempio un messaggio troppo grande) fermerebbe il server.
+    ws.on('error', () => ws.terminate());
     wss.emit('connection', ws, req);
-    if (!joinGame(gameId, ws, userFromRequest(req), getSettings().spectators)) {
-      ws.send(JSON.stringify({ t: 'gone' }));
-      ws.close();
+    try {
+      if (!joinGame(gameId, ws, userFromRequest(req), getSettings().spectators)) {
+        ws.send(JSON.stringify({ t: 'gone' }));
+        ws.close();
+      }
+    } catch (e) {
+      console.error(e);
+      ws.terminate();
     }
   });
 });
@@ -464,6 +496,10 @@ setInterval(() => {
     }
   }
 }, 30_000).unref();
+
+// Ultima rete di sicurezza: un errore imprevisto si annota, ma non deve spegnere il sito e le partite in corso.
+process.on('uncaughtException', (e) => console.error('Errore imprevisto:', e));
+process.on('unhandledRejection', (e) => console.error('Errore imprevisto:', e));
 
 server.listen(PORT, () => console.log(`Gambetto in ascolto su http://localhost:${PORT}`));
 
