@@ -20,7 +20,7 @@ interface Room {
 }
 
 /** Dopo quanto tempo di assenza dell'avversario si può reclamare la vittoria. */
-const CLAIM_MS = Number(process.env.CLAIM_MS ?? 120_000);
+const CLAIM_MS = Number(process.env.CLAIM_MS ?? 300_000);
 
 const rooms = new Map<string, Room>();
 

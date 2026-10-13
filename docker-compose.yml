@@ -15,7 +15,7 @@ services:
       # 1 sul sito pubblico: il cookie di sessione viaggia solo in HTTPS.
       COOKIE_SECURE: "${COOKIE_SECURE:-0}"
       # Attesa prima di poter reclamare la vittoria se l'avversario sparisce (millisecondi).
-      CLAIM_MS: "${CLAIM_MS:-120000}"
+      CLAIM_MS: "${CLAIM_MS:-300000}"
     logging:
       options:
         max-size: "10m"
