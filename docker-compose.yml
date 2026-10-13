@@ -5,7 +5,7 @@ services:
     image: ${GAMBETTO_IMAGE:-gambetto}
     build: .
     restart: unless-stopped
-    # In ascolto solo sulla macchina stessa: dall'esterno si passa dal proxy di aaPanel, che aggiunge HTTPS.
+    # In ascolto solo sulla macchina stessa: dall'esterno si passa da un reverse proxy, che aggiunge HTTPS.
     ports:
       - "127.0.0.1:${GAMBETTO_PORT:-8787}:8787"
     volumes:

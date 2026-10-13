@@ -22,7 +22,7 @@ import { getSettings, saveSettings } from './settings.ts';
 
 const PORT = Number(process.env.PORT ?? 8787);
 const DIST = resolve(process.env.DIST_DIR ?? 'dist');
-// Dietro un proxy (aaPanel/nginx) l'indirizzo e il protocollo veri arrivano negli header X-Forwarded-*.
+// Dietro un reverse proxy (nginx o simili) l'indirizzo e il protocollo veri arrivano negli header X-Forwarded-*.
 const TRUST_PROXY = process.env.TRUST_PROXY === '1';
 // Sul sito pubblico (sempre in HTTPS) il cookie di sessione viaggia solo su connessioni cifrate.
 const COOKIE_SECURE = process.env.COOKIE_SECURE === '1';

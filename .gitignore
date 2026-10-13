@@ -7,3 +7,5 @@
 /promo
 # Impostazioni locali dell'editor.
 /.claude
+# Appunti di pubblicazione con i dettagli del proprio server.
+*.locale.md

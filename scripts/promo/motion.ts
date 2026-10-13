@@ -13,6 +13,8 @@ import { WebSocket } from 'ws';
 const PORT = 8791;
 const BASE = `http://localhost:${PORT}`;
 const FPS = 30;
+// Indirizzo mostrato nel link d'invito della scena online: PROMO_SITE=https://tuodominio.it/ node scripts/promo/motion.ts
+const SITE = process.env.PROMO_SITE ?? 'https://gambetto.example/';
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 // WSL tiene occupata per qualche istante la cartella in cui ha appena lavorato: la cancellazione va ritentata.
 const RETRY = { maxRetries: 20, retryDelay: 500 };
@@ -162,10 +164,10 @@ async function captureStills(browser: Browser, page: Page) {
   await page.getByRole('button', { name: /Crea la partita/ }).click();
   await page.waitForSelector('.invite-link');
   // Nel video il link deve mostrare un indirizzo credibile, non quello di prova.
-  await page.evaluate(() => {
+  await page.evaluate((site) => {
     const input = document.querySelector<HTMLInputElement>('.invite-link input')!;
-    input.value = input.value.replace(/^https?:\/\/[^/]+\//, 'https://scacchi.heptagram.it/');
-  });
+    input.value = input.value.replace(/^https?:\/\/[^/]+\//, site);
+  }, SITE);
   const invite = await still('.gate.invite');
   const gameId = (await page.evaluate(() => location.hash)).split('/').pop()!;
   const replies = ['e7e5', 'b8c6', 'g8f6'];
