@@ -163,11 +163,21 @@ cd /opt/gambetto && docker compose pull && docker compose up -d --no-build
 
 **Tornare a una versione precedente**: nel file `.env` sostituisci `:latest` con `:` seguito dal codice del commit voluto, poi ripeti il comando di aggiornamento.
 
-**Backup** del database in un file con la data di oggi (adatto a un'operazione pianificata notturna):
+**Backup** del database, adatto a un'operazione pianificata notturna eseguita come root:
 
 ```bash
-cd /opt/gambetto && docker compose exec gambetto node -e "const {DatabaseSync}=require('node:sqlite');require('node:fs').rmSync('/data/backup.db',{force:true});new DatabaseSync('/data/gambetto.db').exec(\"VACUUM INTO '/data/backup.db'\")" && docker compose cp gambetto:/data/backup.db ./backup-$(date +%F).db
+cd /opt/gambetto && mkdir -p backup && docker compose exec -T gambetto node --disable-warning=ExperimentalWarning -e "const {DatabaseSync}=require('node:sqlite');require('node:fs').rmSync('/data/backup.db',{force:true});new DatabaseSync('/data/gambetto.db').exec(\"VACUUM INTO '/data/backup.db'\")" 2>&1 && docker compose cp gambetto:/data/backup.db backup/gambetto-$(date +%F).db 2>&1 && gzip -f backup/gambetto-$(date +%F).db && find backup -name 'gambetto-*.db.gz' -mtime +14 -delete && ls -lh backup | tail -n 3
 ```
+
+Il comando salva una copia compressa in `/opt/gambetto/backup` e cancella quelle più vecchie di 14 giorni. Il sito resta acceso mentre gira.
+
+**Ripristino** di una copia (sostituisci la data; tutto ciò che è successo dopo quella copia va perso):
+
+```bash
+cd /opt/gambetto && gunzip -kf backup/gambetto-2026-01-31.db.gz && docker compose stop && docker compose cp backup/gambetto-2026-01-31.db gambetto:/data/gambetto.db && docker compose run --rm --no-deps -u root --entrypoint sh gambetto -c "chown node:node /data/gambetto.db && rm -f /data/gambetto.db-wal /data/gambetto.db-shm" && docker compose up -d --no-build
+```
+
+Le copie stanno sullo stesso server del sito: ogni tanto scaricane una altrove.
 
 **Log**:
 
